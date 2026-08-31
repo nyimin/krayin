@@ -24,6 +24,29 @@ WORKDIR /var/www/html
 # clone Krayin 2.2.3 (security-patched)
 RUN git clone --depth 1 --branch v2.2.3 https://github.com/krayin/laravel-crm.git krayin
 
+# Force https URL generation (app runs behind TLS-terminating Traefik proxy)
+RUN printf '%s\n' \
+ '<?php' \
+ '' \
+ 'namespace App\Providers;' \
+ '' \
+ 'use Illuminate\Support\Facades\URL;' \
+ 'use Illuminate\Support\ServiceProvider;' \
+ '' \
+ 'class AppServiceProvider extends ServiceProvider' \
+ '{' \
+ '    public function register(): void' \
+ '    {' \
+ '        //' \
+ '    }' \
+ '' \
+ '    public function boot(): void' \
+ '    {' \
+ '        URL::forceScheme("https");' \
+ '    }' \
+ '}' \
+ > /var/www/html/krayin/app/Providers/AppServiceProvider.php
+
 WORKDIR /var/www/html/krayin
 RUN cp .env.example .env && composer install --no-interaction --no-progress --prefer-dist
 RUN php artisan storage:link >/dev/null 2>&1 || true

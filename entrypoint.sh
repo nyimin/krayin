@@ -4,6 +4,14 @@ cd /var/www/html/krayin
 
 # ensure .env present (process env overrides via immutable Dotenv)
 [ -f .env ] || cp .env.example .env
+# force https URL base for app.url (proxy terminates TLS)
+APP_BASE="${APP_URL:-https://poweredge.altlabdev.com}"
+sed -i "s|^APP_URL=.*|APP_URL=$APP_BASE|" .env
+if grep -q '^ASSET_URL=' .env; then
+  sed -i "s|^ASSET_URL=.*|ASSET_URL=$APP_BASE|" .env
+else
+  echo "ASSET_URL=$APP_BASE" >> .env
+fi
 
 # wait for DB
 i=0
