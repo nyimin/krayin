@@ -3,13 +3,14 @@ FROM php:8.3-apache
 # system deps
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git unzip libicu-dev libzip-dev libpng-dev libjpeg62-turbo-dev \
-    libfreetype6-dev libwebp-dev libxpm-dev libgmp-dev zlib1g-dev \
+    libfreetype6-dev libwebp-dev libxpm-dev libgmp-dev libonig-dev \
+    zlib1g-dev libcurl4-openssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # php extensions
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp
 RUN docker-php-ext-configure intl
-RUN docker-php-ext-install bcmath calendar exif gd gmp intl mysqli pdo pdo_mysql zip opcache mbstring
+RUN docker-php-ext-install bcmath calendar exif gd gmp intl mysqli pdo pdo_mysql zip opcache mbstring curl soap
 
 RUN a2enmod rewrite
 
