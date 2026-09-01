@@ -1,0 +1,10 @@
+# build/output
+vendor/
+node_modules/
+*.log
+.env
+.env.*
+!.env.example
+storage/
+bootstrap/cache/*
+!/bootstrap/cache/.gitignore
