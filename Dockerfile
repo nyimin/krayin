@@ -47,6 +47,10 @@ RUN printf '%s\n' \
  '}' \
  > /var/www/html/krayin/app/Providers/AppServiceProvider.php
 
+# Custom product-pricing API (PowerEdge) — controller + routes
+COPY api/ProductApiController.php /var/www/html/krayin/app/Http/Controllers/Api/ProductApiController.php
+COPY api/routes.php /var/www/html/krayin/routes/api.php
+
 WORKDIR /var/www/html/krayin
 RUN cp .env.example .env && composer install --no-interaction --no-progress --prefer-dist
 RUN php artisan storage:link >/dev/null 2>&1 || true
