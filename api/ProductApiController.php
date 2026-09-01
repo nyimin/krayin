@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
-use Webkul\Product\Models\Product;
+use Webkul\Product\Repositories\ProductRepository;
 
 class ProductApiController extends Controller
 {
@@ -46,35 +46,30 @@ class ProductApiController extends Controller
             'quantity'    => 'nullable|integer|min:0',
         ]);
 
-        $product = Product::where('sku', $data['sku'])->first();
+        $repo = app(ProductRepository::class);
 
-        if (! $product) {
-            $product = new Product;
-            $product->sku = $data['sku'];
-            $product->name = $data['name'] ?? $data['sku'];
-            $product->description = $data['description'] ?? '';
-        } else {
-            if (isset($data['name'])) {
-                $product->name = $data['name'];
-            }
-            if (isset($data['description'])) {
-                $product->description = $data['description'];
-            }
-        }
+        $payload = [
+            'entity_type' => 'products',
+            'sku'         => $data['sku'],
+            'name'        => $data['name'] ?? $data['sku'],
+            'description' => $data['description'] ?? '',
+            'price'       => $data['price'],
+            'quantity'    => (int) ($data['quantity'] ?? 0),
+        ];
 
-        $product->price = $data['price'];
-        if (isset($data['quantity'])) {
-            $product->quantity = $data['quantity'];
-        }
-        $product->save();
+        $existing = $repo->findOneWhere(['sku' => $data['sku']]);
+
+        $product = $existing
+            ? $repo->update($payload, $existing->id)
+            : $repo->create($payload);
 
         return response()->json([
             'success' => true,
             'product' => [
                 'sku'      => $product->sku,
                 'name'     => $product->name,
-                'price'    => $product->price,
-                'quantity' => $product->quantity,
+                'price'    => (float) $product->price,
+                'quantity' => (int) $product->quantity,
             ],
         ]);
     }
@@ -84,12 +79,23 @@ class ProductApiController extends Controller
      */
     public function show(Request $request, string $sku): JsonResponse
     {
-        $product = Product::where('sku', $sku)->first();
+        $repo = app(ProductRepository::class);
+        $product = $repo->findOneWhere(['sku' => $sku]);
 
         if (! $product) {
             return response()->json(['success' => false, 'message' => 'Product not found'], 404);
         }
 
-        return response()->json(['success' => true, 'product' => $product]);
+        return response()->json([
+            'success' => true,
+            'product' => [
+                'id'         => $product->id,
+                'sku'        => $product->sku,
+                'name'       => $product->name,
+                'description'=> $product->description,
+                'price'      => (float) $product->price,
+                'quantity'   => (int) $product->quantity,
+            ],
+        ]);
     }
 }
