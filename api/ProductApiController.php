@@ -48,16 +48,16 @@ class ProductApiController extends Controller
 
         $repo = app(ProductRepository::class);
 
+        $existing = $repo->findOneWhere(['sku' => $data['sku']]);
+
         $payload = [
             'entity_type' => 'products',
             'sku'         => $data['sku'],
-            'name'        => $data['name'] ?? $data['sku'],
-            'description' => $data['description'] ?? '',
+            'name'        => $data['name'] ?? ($existing ? $existing->name : $data['sku']),
+            'description' => $data['description'] ?? ($existing ? $existing->description : ''),
             'price'       => $data['price'],
-            'quantity'    => (int) ($data['quantity'] ?? 0),
+            'quantity'    => (int) ($data['quantity'] ?? ($existing ? $existing->quantity : 0)),
         ];
-
-        $existing = $repo->findOneWhere(['sku' => $data['sku']]);
 
         $product = $existing
             ? $repo->update($payload, $existing->id)
